@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin sign in — ODOT Title Forms</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body class="admin-theme">
+  <div class="login-wrap">
+    <form id="login-form" class="card login-card">
+      <h1>Admin Console</h1>
+      <p class="muted">Platform administration · sign in</p>
+      <label>Email<input id="email" type="email" autocomplete="username" required /></label>
+      <label>Password<input id="password" type="password" autocomplete="current-password" required /></label>
+      <div id="login-error" class="banner err" hidden></div>
+      <button id="login-btn" class="primary" type="submit">Sign in</button>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById("login-form");
+    const errEl = document.getElementById("login-error");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errEl.hidden = true;
+      const btn = document.getElementById("login-btn");
+      btn.disabled = true; btn.textContent = "Signing in…";
+      try {
+        const r = await fetch("/api/admin/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: document.getElementById("email").value,
+            password: document.getElementById("password").value,
+          }),
+        });
+        if (!r.ok) {
+          const d = await r.json().catch(() => ({}));
+          throw new Error(d.detail || "Sign in failed");
+        }
+        window.location.href = "/admin";
+      } catch (err) {
+        errEl.textContent = String(err.message || err);
+        errEl.hidden = false;
+        btn.disabled = false; btn.textContent = "Sign in";
+      }
+    });
+  </script>
+</body>
+</html>

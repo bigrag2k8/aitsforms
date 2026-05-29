@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ODOT Title Forms — RE 46 / RE 46-1</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>ODOT Title Forms</h1>
+    <span class="sub">RE 46 Title Report &nbsp;+&nbsp; RE 46-1 Title Chain</span>
+    <div class="userbox">
+      <span id="who" class="who"></span>
+      <button id="btn-logout" class="ghost" type="button">Sign out</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Saved jobs -->
+    <aside class="sidebar">
+      <div class="side-head">
+        <span>Saved Jobs</span>
+        <button id="btn-new" class="ghost" title="Start a new blank job">+ New</button>
+      </div>
+      <ul id="jobs-list" class="jobs"></ul>
+    </aside>
+
+    <!-- Form -->
+    <main class="form-wrap">
+      <form id="title-form" autocomplete="off">
+
+        <section class="card selector">
+          <label class="inline big">
+            Form&nbsp;
+            <select id="form-select">
+              <option value="re46">RE 46 — Title Report</option>
+              <option value="chain">RE 46-1 — Title Chain</option>
+            </select>
+          </label>
+          <p class="muted note">Pick a form to fill it out. Shared identifiers below apply to both; “Generate” produces both forms.</p>
+        </section>
+
+        <!-- Shared across both forms (always visible) -->
+        <section class="card">
+          <h2>Shared Identifiers <small>(populate both forms)</small></h2>
+          <div class="grid">
+            <label>District (DIST)<input id="district" /></label>
+            <label>C / R / S<input id="crs" placeholder="FRA-70-12.34" /></label>
+            <label>Parcel<input id="parcel" /></label>
+            <label>Suffix<input id="suffix" placeholder="WD" /></label>
+            <label>PID<input id="pid" /></label>
+            <label>County<select id="county"><option value="">— select county —</option></select>
+          </div>
+        </section>
+
+        <!-- ============ RE 46 view ============ -->
+        <div id="view-re46" class="form-view">
+          <section class="card">
+            <h2>Report Type</h2>
+            <div class="radios">
+              <label><input type="radio" name="report_type" value="42year" checked /> 42 Year Report</label>
+              <label><input type="radio" name="report_type" value="abbreviated" /> Abbreviated Report</label>
+              <label><input type="radio" name="report_type" value="update" /> Update</label>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2>(1) Fee / Primary Owner</h2>
+            <div class="grid">
+              <label class="col3">Name<input id="owner_name" /></label>
+              <label>Marital Status (Spouse)<input id="owner_marital" /></label>
+              <label>Interest<input id="owner_interest" placeholder="Fee Simple" /></label>
+              <label>Phone<input id="owner_phone" /></label>
+              <label>Mailing Address 1<input id="mail_addr1" /></label>
+              <label>Mailing Address 2<input id="mail_addr2" /></label>
+              <label>Property Address 1<input id="prop_addr1" /></label>
+              <label>Property Address 2<input id="prop_addr2" /></label>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2>(2) Brief Description of Subject Premises</h2>
+            <textarea id="fee_description" rows="3"></textarea>
+          </section>
+
+          <section class="card">
+            <h2>(3) Mortgages / Leases / Easements</h2>
+            <div class="grid">
+              <label class="col2">3-A Mortgage — Name &amp; Address<input id="mortgages_name" /></label>
+              <label>Date Filed<input id="mortgages_date" type="date" /></label>
+              <label>Amount &amp; Type<input id="mortgages_amount" /></label>
+              <label class="col2">3-B Lease — Name &amp; Address<input id="leases_name" /></label>
+              <label>Comm./Resid.<input id="leases_type" /></label>
+              <label>Term<input id="leases_term" /></label>
+              <label class="col2">3-C Easement — Name &amp; Address<input id="easements_name" /></label>
+              <label>Type<input id="easements_type" /></label>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2>(4) Defects in Title / Comments</h2>
+            <textarea id="defects" rows="2"></textarea>
+          </section>
+
+          <section class="card">
+            <h2>(5) Taxes &amp; Special Assessments</h2>
+            <div class="grid">
+              <label>Township<input id="township" /></label>
+              <label>School District<input id="school_district" /></label>
+            </div>
+            <table class="repeater" id="tax-table">
+              <thead>
+                <tr><th>Aud. Par. No(s)</th><th>Land</th><th>Building</th><th>Total</th><th>Taxes</th><th></th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+            <button type="button" class="ghost" data-add="tax">+ Add tax row</button>
+          </section>
+
+          <section class="card">
+            <h2>(6) CAUV</h2>
+            <label class="inline"><input type="checkbox" id="cauv" /> Property is enrolled in the CAUV program</label>
+            <label>Comments<input id="cauv_comments" /></label>
+          </section>
+
+          <section class="card">
+            <h2>Certification Block</h2>
+            <div class="grid">
+              <label>Covers from<input id="cover_from" type="date" /></label>
+              <label>to<input id="cover_to" type="date" /></label>
+              <label>Date &amp; Time signed<input id="sign_datetime" type="datetime-local" /></label>
+              <label>Agent (print name)<input id="agent_name" /></label>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2>Update Title Block <small>(for an updated report)</small></h2>
+            <div class="grid">
+              <label>Covers from<input id="update_from" type="date" /></label>
+              <label>to<input id="update_to" type="date" /></label>
+              <label>Date &amp; Time signed<input id="update_datetime" type="datetime-local" /></label>
+              <label>Update agent<input id="update_agent_name" /></label>
+              <label class="col3">Update comments<input id="update_comments" /></label>
+            </div>
+          </section>
+        </div>
+
+        <!-- ============ RE 46-1 view ============ -->
+        <div id="view-chain" class="form-view" hidden>
+          <section class="card">
+            <h2>Title Chain (RE 46-1)</h2>
+            <div class="table-scroll">
+              <table class="repeater fixed wide" id="chain-table">
+                <colgroup>
+                  <col style="width:15%" /><col style="width:14%" /><col style="width:11%" />
+                  <col style="width:16%" /><col style="width:8%" /><col style="width:7%" />
+                  <col style="width:10%" /><col style="width:15%" /><col style="width:4%" />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Grantor</th><th>Grantee</th><th>Date Signed</th><th>Date/Time Recorded</th>
+                    <th>Vol/Page</th><th>Conv. Fee</th><th>Instrument</th><th>Description</th><th></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <button type="button" class="ghost" data-add="chain">+ Add chain entry</button>
+          </section>
+        </div>
+
+      </form>
+    </main>
+
+    <!-- Results -->
+    <aside class="results">
+      <div class="actions">
+        <button id="btn-generate" class="primary">Generate Forms</button>
+        <div id="current-job" class="muted"></div>
+      </div>
+      <div id="result" class="result"></div>
+    </aside>
+  </div>
+
+  <!-- Forced password change on first login / after an admin reset -->
+  <div id="pw-modal" class="modal" hidden>
+    <div class="modal-card">
+      <h3>Set your password</h3>
+      <p class="muted">For your security, choose your own password before continuing.</p>
+      <label>New password<input id="pw-new" type="password" autocomplete="new-password" /></label>
+      <label>Confirm password<input id="pw-confirm" type="password" autocomplete="new-password" /></label>
+      <div id="pw-error" class="banner err" hidden></div>
+      <button id="pw-submit" class="primary" type="button">Save &amp; continue</button>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Local data & generated output (DB lives on a Railway Volume in prod)
+data/
+output/
+*.db
+*.sqlite3
+
+# Secrets / local env
+.env
+.env.local
+
+# Editor / OS / local tooling
+.claude/
+_inspect/
+.DS_Store
+Thumbs.db

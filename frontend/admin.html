@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Console — ODOT Title Forms</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body class="admin-theme">
+  <header class="topbar">
+    <h1>Admin Console</h1>
+    <span class="sub">Businesses &amp; users</span>
+    <div class="userbox">
+      <span id="who" class="who"></span>
+      <button id="btn-logout" class="ghost" type="button">Sign out</button>
+    </div>
+  </header>
+
+  <main class="admin-wrap">
+    <section class="card">
+      <h2>Add a business</h2>
+      <div class="row-inline">
+        <input id="new-business-name" placeholder="Business name" />
+        <button id="btn-add-business" class="primary narrow" type="button">Create</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Businesses</h2>
+      <div id="businesses"></div>
+    </section>
+  </main>
+
+  <!-- credential reveal modal -->
+  <div id="cred-modal" class="modal" hidden>
+    <div class="modal-card">
+      <h3 id="cred-title">Credentials</h3>
+      <p class="muted">Share these with the user now — the password is shown only once.</p>
+      <pre id="cred-body"></pre>
+      <button id="cred-close" class="primary" type="button">Done</button>
+    </div>
+  </div>
+
+  <script src="/static/admin.js"></script>
+</body>
+</html>
