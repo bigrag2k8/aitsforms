@@ -28,6 +28,25 @@ app = FastAPI(title="ODOT Title Forms")
 @app.on_event("startup")
 def _startup() -> None:
     storage.init_db()
+    _bootstrap_admin()
+
+
+def _bootstrap_admin() -> None:
+    """One-time platform-admin bootstrap for hosts without CLI access.
+
+    If no admin exists yet and BOOTSTRAP_ADMIN_EMAIL/PASSWORD are set, create one.
+    Never overrides an existing admin, so it's safe to leave the vars in place
+    (though removing the password var after first login is recommended).
+    """
+    email = os.environ.get("BOOTSTRAP_ADMIN_EMAIL", "").strip()
+    password = os.environ.get("BOOTSTRAP_ADMIN_PASSWORD", "")
+    name = os.environ.get("BOOTSTRAP_ADMIN_NAME", "Administrator").strip() or "Administrator"
+    if not email or not password:
+        return
+    if storage.list_admins() or storage.get_admin_by_email(email):
+        return
+    storage.create_admin(email, name, security.hash_password(password))
+    print(f"[bootstrap] created initial platform admin: {email}")
 
 
 # --------------------------------------------------------------------- auth
