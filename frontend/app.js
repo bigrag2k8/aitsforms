@@ -179,6 +179,12 @@ function setCounty(v) {
 function fill(data) {
   for (const id of SCALARS) document.getElementById(id).value = storedToInput(id, data[id]);
   setCounty(data.county || "");
+  // Resize any scalar auto-grow textareas to the loaded content.
+  requestAnimationFrame(() =>
+    document.querySelectorAll(".form-wrap > * textarea.grow").forEach((el) => {
+      if (!el.closest("table.repeater")) autoGrow(el);
+    })
+  );
   const rt = data.report_type || "42year";
   const radio = document.querySelector(`input[name=report_type][value="${rt}"]`);
   if (radio) radio.checked = true;
@@ -352,6 +358,13 @@ document.getElementById("btn-generate").onclick = generate;
 document.getElementById("btn-new").onclick = newJob;
 document.getElementById("btn-logout").onclick = logout;
 document.getElementById("pw-submit").onclick = submitPwChange;
+
+// Wire static (non-repeater) auto-grow textareas (e.g. easement Name & Address).
+document.querySelectorAll("textarea.grow").forEach((el) => {
+  if (!el.closest("table.repeater")) {
+    el.addEventListener("input", () => autoGrow(el));
+  }
+});
 
 showForm(document.getElementById("form-select").value);
 (async () => {

@@ -93,7 +93,7 @@
               <label class="col2">3-B Lease — Name &amp; Address<input id="leases_name" /></label>
               <label>Comm./Resid.<input id="leases_type" /></label>
               <label>Term<input id="leases_term" /></label>
-              <label class="col2">3-C Easement — Name &amp; Address<input id="easements_name" /></label>
+              <label class="col2">3-C Easement — Name &amp; Address<textarea id="easements_name" class="grow scrollable" rows="1"></textarea></label>
               <label>Type<input id="easements_type" /></label>
             </div>
           </section>
@@ -109,12 +109,18 @@
               <label>Township<input id="township" /></label>
               <label>School District<input id="school_district" /></label>
             </div>
-            <table class="repeater" id="tax-table">
-              <thead>
-                <tr><th>Aud. Par. No(s)</th><th>Land</th><th>Building</th><th>Total</th><th>Taxes</th><th></th></tr>
-              </thead>
-              <tbody></tbody>
-            </table>
+            <div class="table-scroll">
+              <table class="repeater fixed wide-tax" id="tax-table">
+                <colgroup>
+                  <col style="width:20%" /><col style="width:19%" /><col style="width:19%" />
+                  <col style="width:19%" /><col style="width:19%" /><col style="width:4%" />
+                </colgroup>
+                <thead>
+                  <tr><th>Aud. Par. No(s)</th><th>Land</th><th>Building</th><th>Total</th><th>Taxes</th><th></th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
             <button type="button" class="ghost" data-add="tax">+ Add tax row</button>
           </section>
 
