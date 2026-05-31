@@ -45,7 +45,6 @@ UNCHK = "☐"  # empty ballot box
 RE46_TEXT_FIELDS = {
     "CRS": "crs",
     "PARCEL": "parcel",
-    "SUFFIX": "suffix",
     "PID": "pid",
     "OWNER": "owner_name",
     "MartialStatus": "owner_marital",
@@ -84,9 +83,14 @@ RE46_TEXT_FIELDS = {
 # Word REF cross-reference fields in the certification sentences -> placeholders.
 RE46_REF_FIELDS = {
     "parcel": "parcel",
-    "suffix": "suffix",
     "owner": "owner_name",
 }
+
+# Fields to remove entirely. Also strips the literal "-" run that the original
+# layout placed before the field (e.g. "PARCEL <val> - <SUFFIX>") so the doc
+# doesn't end up with an orphan dash.
+DROP_FORM_FIELDS = {"SUFFIX"}
+DROP_REF_TARGETS = {"suffix"}
 
 # Checkboxes -> full Jinja expression that emits a checked/unchecked glyph.
 RE46_CHECKBOXES = {
@@ -169,6 +173,23 @@ def clone(el: etree._Element) -> etree._Element:
     return etree.fromstring(etree.tostring(el))
 
 
+def _strip_leading_dash(begin_run: etree._Element) -> None:
+    """If the run immediately before begin_run contains only '-' (with optional
+    whitespace), remove that run. Bookmarks and other non-run siblings are skipped.
+    Used when dropping a field whose original layout had a literal '-' separator
+    in front of it (e.g. between PARCEL and SUFFIX)."""
+    parent = begin_run.getparent()
+    sibs = list(parent)
+    idx = sibs.index(begin_run)
+    for j in range(idx - 1, -1, -1):
+        el = sibs[j]
+        if el.tag == qn("r"):
+            text = "".join(t.text or "" for t in el.findall(qn("t")))
+            if text.strip() == "-":
+                parent.remove(el)
+            return
+
+
 def make_marker_row(template_row: etree._Element, tag_text: str) -> etree._Element:
     """A standalone <w:tr> whose only purpose is to carry a {%tr ... %} tag.
 
@@ -228,7 +249,10 @@ def replace_form_fields(root: etree._Element) -> int:
             fname = name_el.get(qn("val")) if name_el is not None else None
             if not fname:
                 continue
-            if ff.find(qn("checkBox")) is not None:
+            if fname in DROP_FORM_FIELDS:
+                _strip_leading_dash(begin_run)
+                placeholder = ""  # drop the field complex entirely
+            elif ff.find(qn("checkBox")) is not None:
                 placeholder = RE46_CHECKBOXES.get(fname)
                 if placeholder is None:
                     continue
@@ -245,10 +269,15 @@ def replace_form_fields(root: etree._Element) -> int:
             # Non form-field: REF cross-reference or SEQ numbering.
             ref = re.search(r"\bREF\s+(\w+)", instr, re.I)
             if ref:
-                key = RE46_REF_FIELDS.get(ref.group(1).lower())
-                if not key:
-                    continue
-                placeholder = "{{ %s }}" % key
+                target = ref.group(1).lower()
+                if target in DROP_REF_TARGETS:
+                    _strip_leading_dash(begin_run)
+                    placeholder = ""
+                else:
+                    key = RE46_REF_FIELDS.get(target)
+                    if not key:
+                        continue
+                    placeholder = "{{ %s }}" % key
             elif "SEQ" in instr.upper():
                 placeholder = ""  # strip stray chapter-sequence numbers
             else:
@@ -363,7 +392,7 @@ def template_chain_header(root: etree._Element) -> bool:
             pending, label_rpr = "PARCEL_COMBO", first_run_rpr(tc)
         elif pending is not None:
             if pending == "PARCEL_COMBO":
-                set_cell_text(tc, "{{ parcel }} - {{ suffix }}", label_rpr)
+                set_cell_text(tc, "{{ parcel }}", label_rpr)
             else:
                 set_cell_text(tc, pending, label_rpr)
             pending = None

@@ -109,7 +109,6 @@ def _sanitize(part: str) -> str:
 
 
 def _filename(prefix: str, job: TitleJob) -> str:
-    parcel_combo = "-".join(p for p in [job.parcel, job.suffix] if p)
-    raw_parts = [prefix, parcel_combo, job.pid, job.county, job.mail_addr1]
+    raw_parts = [prefix, job.parcel, job.pid, job.county, job.mail_addr1]
     parts = [p for p in (_sanitize(x) for x in raw_parts) if p]
     return "-".join(parts) if parts else prefix or "form"

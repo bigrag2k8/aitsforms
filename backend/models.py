@@ -1,7 +1,7 @@
 """Shared data model for the ODOT title forms.
 
 A single TitleJob backs BOTH the RE 46 (Title Report) and RE 46-1 (Title Chain).
-The shared identifier fields (district / crs / parcel / suffix / pid / county)
+The shared identifier fields (district / crs / parcel / pid / county)
 are entered once and flow into both documents.
 """
 from __future__ import annotations
@@ -33,7 +33,6 @@ class TitleJob(BaseModel):
     district: str = ""
     crs: str = ""
     parcel: str = ""
-    suffix: str = ""
     pid: str = ""
     county: str = ""
 

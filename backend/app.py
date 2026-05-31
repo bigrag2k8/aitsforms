@@ -267,7 +267,7 @@ class GenerateRequest(BaseModel):
 
 def _job_label(job: TitleJob) -> str:
     bits = [b for b in [
-        job.parcel and f"Parcel {job.parcel}{('-' + job.suffix) if job.suffix else ''}",
+        job.parcel and f"Parcel {job.parcel}",
         job.crs, job.county,
     ] if b]
     return " · ".join(bits) or "Untitled job"
@@ -281,7 +281,7 @@ def api_generate(req: GenerateRequest, ctx: dict = Depends(require_ready)):
     job_id = req.job_id
     if job_id and not storage.get_job(job_id, business_id):
         job_id = None
-    job_id = job_id or f"b{business_id}-{_slug(job.parcel, job.suffix)}-{uuid.uuid4().hex[:6]}"
+    job_id = job_id or f"b{business_id}-{_slug(job.parcel)}-{uuid.uuid4().hex[:6]}"
     label = req.label or _job_label(job)
 
     files = generate(job, job_id, want_pdf=False)
@@ -367,8 +367,8 @@ def admin_page(request: Request):
         return f.read()
 
 
-def _slug(parcel: str, suffix: str) -> str:
-    raw = "-".join(p for p in [parcel, suffix] if p) or "job"
+def _slug(parcel: str) -> str:
+    raw = parcel or "job"
     return "".join(ch if ch.isalnum() or ch in "-_" else "-" for ch in raw)
 
 

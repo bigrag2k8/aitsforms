@@ -1,7 +1,7 @@
 "use strict";
 
 const SCALARS = [
-  "district", "crs", "parcel", "suffix", "pid", "county",
+  "district", "crs", "parcel", "pid", "county",
   "owner_name", "owner_marital", "owner_interest", "owner_phone",
   "mail_addr1", "mail_addr2", "prop_addr1", "prop_addr2",
   "fee_description",

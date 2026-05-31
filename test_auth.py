@@ -49,7 +49,7 @@ me = json.loads(b)
 results.append(show("alice /me name+business", me["user"]["name"] == "Alice Adams" and me["business"]["name"] == "Buckeye Title Co"))
 
 # Alice creates a job
-s, b = alice.post("/api/generate", {"job": {"parcel": "100", "suffix": "WD", "county": "Franklin",
+s, b = alice.post("/api/generate", {"job": {"parcel": "100", "county": "Franklin",
                                             "chain": [{"grantor": "X", "grantee": "Y"}]}})
 alice_job = json.loads(b)["job_id"]
 results.append(show("alice generate -> job_id", bool(alice_job)))

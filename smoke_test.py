@@ -6,7 +6,6 @@ job = TitleJob(
     district="06",
     crs="FRA-70-12.34",
     parcel="15",
-    suffix="WD",
     pid="010-123456-00",
     county="Franklin",
     report_type="42year",
