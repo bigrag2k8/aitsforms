@@ -84,8 +84,8 @@ def generate(job: TitleJob, job_id: str, want_pdf: bool = True) -> dict:
     os.makedirs(out_dir, exist_ok=True)
     ctx = job.context()
 
-    re46_name = _filename("RE46", job) + ".docx"
-    chain_name = _filename("RE46-1", job) + ".docx"
+    re46_name = _filename("Title Report", job) + ".docx"
+    chain_name = _filename("Title Chain", job) + ".docx"
     re46_docx = render_docx(RE46_TPL, ctx, os.path.join(out_dir, re46_name))
     chain_docx = render_docx(CHAIN_TPL, ctx, os.path.join(out_dir, chain_name))
 
