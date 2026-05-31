@@ -4,6 +4,7 @@ import os
 import secrets
 import uuid
 from typing import Optional
+from urllib.parse import quote
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.responses import FileResponse, HTMLResponse
@@ -287,7 +288,7 @@ def api_generate(req: GenerateRequest, ctx: dict = Depends(require_ready)):
     storage.save_job(job_id, business_id, label, job.model_dump())
 
     def url(path: Optional[str]) -> Optional[str]:
-        return f"/api/download/{job_id}/{os.path.basename(path)}" if path else None
+        return f"/api/download/{job_id}/{quote(os.path.basename(path))}" if path else None
 
     return {
         "job_id": job_id,

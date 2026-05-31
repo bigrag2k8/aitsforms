@@ -84,9 +84,10 @@ def generate(job: TitleJob, job_id: str, want_pdf: bool = True) -> dict:
     os.makedirs(out_dir, exist_ok=True)
     ctx = job.context()
 
-    stem = _safe_stem(job)
-    re46_docx = render_docx(RE46_TPL, ctx, os.path.join(out_dir, f"RE46_{stem}.docx"))
-    chain_docx = render_docx(CHAIN_TPL, ctx, os.path.join(out_dir, f"RE46-1_{stem}.docx"))
+    re46_name = _filename("RE46", job) + ".docx"
+    chain_name = _filename("RE46-1", job) + ".docx"
+    re46_docx = render_docx(RE46_TPL, ctx, os.path.join(out_dir, re46_name))
+    chain_docx = render_docx(CHAIN_TPL, ctx, os.path.join(out_dir, chain_name))
 
     result = {"re46_docx": re46_docx, "chain_docx": chain_docx, "re46_pdf": None, "chain_pdf": None}
     if want_pdf:
@@ -95,6 +96,20 @@ def generate(job: TitleJob, job_id: str, want_pdf: bool = True) -> dict:
     return result
 
 
-def _safe_stem(job: TitleJob) -> str:
-    raw = "_".join(p for p in [job.parcel, job.suffix] if p) or "form"
-    return "".join(ch if ch.isalnum() or ch in "-_" else "-" for ch in raw)
+# Filename format: <FormName>-<Parcel(-Suffix)>-<PID>-<County>-<Mailing Addr 1>.docx
+# Empty parts are skipped so partial entries still produce a sensible name.
+_BAD_FN_CHARS = '/\\:*?"<>|\r\n\t'
+
+
+def _sanitize(part: str) -> str:
+    if not part:
+        return ""
+    cleaned = "".join(ch for ch in part if ch not in _BAD_FN_CHARS)
+    return " ".join(cleaned.split()).strip(" .-")
+
+
+def _filename(prefix: str, job: TitleJob) -> str:
+    parcel_combo = "-".join(p for p in [job.parcel, job.suffix] if p)
+    raw_parts = [prefix, parcel_combo, job.pid, job.county, job.mail_addr1]
+    parts = [p for p in (_sanitize(x) for x in raw_parts) if p]
+    return "-".join(parts) if parts else prefix or "form"
