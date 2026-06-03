@@ -201,10 +201,43 @@ function newJob() {
   fill({});
   document.getElementById("current-job").textContent = "New (unsaved) job";
   document.getElementById("result").innerHTML = "";
+  const s = document.getElementById("save-status");
+  if (s) { s.textContent = ""; s.className = "muted small"; }
   renderActive();
 }
 
 // ---------------------------------------------------------------- API
+async function save() {
+  const btn = document.getElementById("btn-save");
+  const status = document.getElementById("save-status");
+  btn.disabled = true;
+  const label0 = btn.textContent;
+  btn.textContent = "Saving…";
+  try {
+    const r = await apiFetch("/api/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ job_id: currentJobId, job: collect() }),
+    });
+    if (!r.ok) throw new Error(await r.text());
+    const data = await r.json();
+    currentJobId = data.job_id;
+    document.getElementById("current-job").textContent = "Job: " + data.label;
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, "0");
+    const mm = String(now.getMinutes()).padStart(2, "0");
+    status.textContent = `Saved at ${hh}:${mm}`;
+    status.className = "muted small";
+    await loadJobs();
+  } catch (e) {
+    status.textContent = `Could not save: ${String(e.message || e)}`;
+    status.className = "small banner err";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = label0;
+  }
+}
+
 async function generate() {
   const btn = document.getElementById("btn-generate");
   btn.disabled = true;
@@ -275,6 +308,8 @@ async function openJob(id) {
   fill(job.data);
   document.getElementById("current-job").textContent = "Job: " + (job.label || id);
   document.getElementById("result").innerHTML = "";
+  const s = document.getElementById("save-status");
+  if (s) { s.textContent = ""; s.className = "muted small"; }
   renderActive();
 }
 
@@ -354,6 +389,7 @@ document.addEventListener("click", (e) => {
   if (add === "chain") addChainRow();
 });
 document.getElementById("form-select").onchange = (e) => showForm(e.target.value);
+document.getElementById("btn-save").onclick = save;
 document.getElementById("btn-generate").onclick = generate;
 document.getElementById("btn-new").onclick = newJob;
 document.getElementById("btn-logout").onclick = logout;

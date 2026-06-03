@@ -273,19 +273,31 @@ def _job_label(job: TitleJob) -> str:
     return " · ".join(bits) or "Untitled job"
 
 
-@app.post("/api/generate")
-def api_generate(req: GenerateRequest, ctx: dict = Depends(require_ready)):
+def _resolve_and_save(req: GenerateRequest, ctx: dict) -> tuple[str, str]:
+    """Resolve the job_id (reusing an existing one only if it belongs to this
+    business) and persist the job data. Shared by /api/save and /api/generate."""
     business_id = ctx["business"]["id"]
     job = req.job
-    # Reuse only an id that already belongs to this business.
     job_id = req.job_id
     if job_id and not storage.get_job(job_id, business_id):
         job_id = None
     job_id = job_id or f"b{business_id}-{_slug(job.parcel)}-{uuid.uuid4().hex[:6]}"
     label = req.label or _job_label(job)
-
-    files = generate(job, job_id, want_pdf=False)
     storage.save_job(job_id, business_id, label, job.model_dump())
+    return job_id, label
+
+
+@app.post("/api/save")
+def api_save(req: GenerateRequest, ctx: dict = Depends(require_ready)):
+    """Save the in-progress job without rendering documents."""
+    job_id, label = _resolve_and_save(req, ctx)
+    return {"job_id": job_id, "label": label}
+
+
+@app.post("/api/generate")
+def api_generate(req: GenerateRequest, ctx: dict = Depends(require_ready)):
+    job_id, label = _resolve_and_save(req, ctx)
+    files = generate(req.job, job_id, want_pdf=False)
 
     def url(path: Optional[str]) -> Optional[str]:
         return f"/api/download/{job_id}/{quote(os.path.basename(path))}" if path else None
