@@ -7,7 +7,6 @@ const SCALARS = [
   "fee_description",
   "mortgages_name", "mortgages_date", "mortgages_amount",
   "leases_name", "leases_type", "leases_term",
-  "easements_name", "easements_type",
   "defects",
   "township", "school_district",
   "cauv_comments",
@@ -19,6 +18,7 @@ const CHAIN_COLS = [
   "grantor", "grantee", "date_signed", "date_recorded",
   "volume_page", "conveyance_fee", "instrument_type", "description",
 ];
+const EASEMENT_COLS = ["name", "type"];
 
 let currentJobId = null;
 
@@ -80,7 +80,8 @@ function inputToStored(key, raw) {
 
 // ---------------------------------------------------------------- repeaters
 // Columns that use an auto-expanding text area instead of a single-line input.
-const EXPANDABLE_COLS = new Set(["grantor", "grantee", "description"]);
+// "name" here is the Easement Name & Address column.
+const EXPANDABLE_COLS = new Set(["grantor", "grantee", "description", "name"]);
 
 function autoGrow(el) {
   el.style.height = "auto";
@@ -126,6 +127,7 @@ function appendRow(tableId, cols, v) {
 }
 function addTaxRow(v) { appendRow("tax-table", TAX_COLS, v); }
 function addChainRow(v) { appendRow("chain-table", CHAIN_COLS, v); }
+function addEasementRow(v) { appendRow("easements-table", EASEMENT_COLS, v); }
 
 function collectRows(tableId, cols) {
   const out = [];
@@ -150,6 +152,7 @@ function collect() {
   job.cauv = document.getElementById("cauv").checked;
   job.taxes = collectRows("tax-table", TAX_COLS);
   job.chain = collectRows("chain-table", CHAIN_COLS);
+  job.easements = collectRows("easements-table", EASEMENT_COLS);
   return job;
 }
 
@@ -191,8 +194,15 @@ function fill(data) {
   document.getElementById("cauv").checked = !!data.cauv;
   document.querySelector("#tax-table tbody").innerHTML = "";
   document.querySelector("#chain-table tbody").innerHTML = "";
+  document.querySelector("#easements-table tbody").innerHTML = "";
   (data.taxes && data.taxes.length ? data.taxes : [{}]).forEach(addTaxRow);
   (data.chain && data.chain.length ? data.chain : [{}]).forEach(addChainRow);
+  // Migrate legacy single-entry easement fields to the new repeater shape.
+  let eas = data.easements;
+  if ((!eas || !eas.length) && (data.easements_name || data.easements_type)) {
+    eas = [{ name: data.easements_name || "", type: data.easements_type || "" }];
+  }
+  (eas && eas.length ? eas : [{}]).forEach(addEasementRow);
 }
 
 function newJob() {
@@ -387,6 +397,7 @@ document.addEventListener("click", (e) => {
   const add = e.target.dataset && e.target.dataset.add;
   if (add === "tax") addTaxRow();
   if (add === "chain") addChainRow();
+  if (add === "easement") addEasementRow();
 });
 document.getElementById("form-select").onchange = (e) => showForm(e.target.value);
 document.getElementById("btn-save").onclick = save;

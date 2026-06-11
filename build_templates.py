@@ -327,6 +327,31 @@ def template_tax_table(root: etree._Element) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# RE 46 (3-C) Easements row -> repeating row (one entry per row)
+# ---------------------------------------------------------------------------
+def template_easements_row(root: etree._Element) -> bool:
+    """Find the row containing the {{ easements_name }} / {{ easements_type }}
+    placeholders (placed earlier by replace_form_fields) and make it repeat
+    once per item in the `easements` list."""
+    name_tok = "{{ easements_name }}"
+    type_tok = "{{ easements_type }}"
+    for tr in list(root.iter(qn("tr"))):
+        if name_tok not in "".join(tr.itertext()):
+            continue
+        for t in tr.findall(f".//{qn('t')}"):
+            if not t.text:
+                continue
+            if name_tok in t.text:
+                t.text = t.text.replace(name_tok, "{{ e.name }}")
+            if type_tok in t.text:
+                t.text = t.text.replace(type_tok, "{{ e.type }}")
+        tr.addprevious(make_marker_row(tr, "{%tr for e in easements %}"))
+        tr.addnext(make_marker_row(tr, "{%tr endfor %}"))
+        return True
+    return False
+
+
+# ---------------------------------------------------------------------------
 # RE 46-1 Title Chain table -> repeating row-pair
 # ---------------------------------------------------------------------------
 def template_chain_table(root: etree._Element) -> bool:
@@ -410,9 +435,10 @@ def build_re46() -> None:
     doc = parse(parts["word/document.xml"])
     n = replace_form_fields(doc)
     tax = template_tax_table(doc)
+    eas = template_easements_row(doc)
     changed = {"word/document.xml": serialize(doc)}
     write_docx(src, out, changed)
-    print(f"[RE 46]   fields replaced: {n}; tax table templated: {tax}")
+    print(f"[RE 46]   fields replaced: {n}; tax table templated: {tax}; easements templated: {eas}")
     print(f"          -> {out}")
 
 

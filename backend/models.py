@@ -28,6 +28,11 @@ class TaxEntry(BaseModel):
     taxes: str = ""
 
 
+class EasementEntry(BaseModel):
+    name: str = ""
+    type: str = ""
+
+
 class TitleJob(BaseModel):
     # --- shared identifiers (populate both forms) ---
     district: str = ""
@@ -62,9 +67,8 @@ class TitleJob(BaseModel):
     leases_type: str = ""
     leases_term: str = ""
 
-    # --- (3-C) easements ---
-    easements_name: str = ""
-    easements_type: str = ""
+    # --- (3-C) easements (repeatable) ---
+    easements: List[EasementEntry] = Field(default_factory=list)
 
     # --- (4) defects ---
     defects: str = ""

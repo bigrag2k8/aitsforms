@@ -92,9 +92,18 @@
               <label class="col2">3-B Lease — Name &amp; Address<input id="leases_name" /></label>
               <label>Comm./Resid.<input id="leases_type" /></label>
               <label>Term<input id="leases_term" /></label>
-              <label class="col2">3-C Easement — Name &amp; Address<textarea id="easements_name" class="grow scrollable" rows="1"></textarea></label>
-              <label>Type<input id="easements_type" /></label>
             </div>
+            <h3 class="subhead">3-C Easements</h3>
+            <table class="repeater fixed" id="easements-table">
+              <colgroup>
+                <col style="width:70%" /><col style="width:26%" /><col style="width:4%" />
+              </colgroup>
+              <thead>
+                <tr><th>Name &amp; Address</th><th>Type</th><th></th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+            <button type="button" class="ghost" data-add="easement">+ Add easement</button>
           </section>
 
           <section class="card">
