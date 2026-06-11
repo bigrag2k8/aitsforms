@@ -80,8 +80,10 @@ function inputToStored(key, raw) {
 
 // ---------------------------------------------------------------- repeaters
 // Columns that use an auto-expanding text area instead of a single-line input.
-// "name" here is the Easement Name & Address column.
-const EXPANDABLE_COLS = new Set(["grantor", "grantee", "description", "name"]);
+// "name" here is the Easement Name & Address column, "type" the Easement Type.
+const EXPANDABLE_COLS = new Set(["grantor", "grantee", "description", "name", "type"]);
+// Expandable columns that also cap their height and scroll once long.
+const SCROLLABLE_COLS = new Set(["type"]);
 
 function autoGrow(el) {
   el.style.height = "auto";
@@ -96,7 +98,7 @@ function repeaterRow(cols, values) {
     if (EXPANDABLE_COLS.has(c)) {
       inp = document.createElement("textarea");
       inp.rows = 1;
-      inp.className = "grow";
+      inp.className = SCROLLABLE_COLS.has(c) ? "grow scrollable" : "grow";
       inp.addEventListener("input", () => autoGrow(inp));
     } else {
       inp = document.createElement("input");

@@ -138,6 +138,10 @@ table.repeater textarea.grow {
   resize: none; overflow: hidden; min-height: 30px; vertical-align: top;
   white-space: pre-wrap; word-break: break-word;
 }
+/* Multiline + scrollable: grows up to a cap, then scrolls (e.g. Easement Type). */
+table.repeater textarea.grow.scrollable {
+  max-height: 96px; overflow-y: auto;
+}
 .row-del { border: none; background: #f1d6d6; color: #9b2222; border-radius: 5px; cursor: pointer; padding: 4px 8px; }
 
 button { cursor: pointer; font: inherit; }
