@@ -418,7 +418,9 @@ showForm(document.getElementById("form-select").value);
   const me = await loadMe();
   if (!me) return; // bounced to /login
   if (me.must_change_password) { showForcedPwChange(); return; }
-  loadCounties();
-  newJob();
-  loadJobs();
+  // Each step is isolated so one failure can't stop the others — in particular
+  // the Saved Jobs sidebar (loadJobs) must always load.
+  try { loadCounties(); } catch (e) { console.error("loadCounties failed", e); }
+  try { newJob(); } catch (e) { console.error("newJob failed", e); }
+  try { loadJobs(); } catch (e) { console.error("loadJobs failed", e); }
 })();

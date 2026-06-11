@@ -2,6 +2,7 @@
 from __future__ import annotations
 import os
 import secrets
+import time
 import uuid
 from typing import Optional
 from urllib.parse import quote
@@ -22,6 +23,15 @@ COUNTIES_PATH = os.path.join(ROOT, "ohio_counties.csv")
 COOKIE = "ta_session"
 ADMIN_COOKIE = "ta_admin"
 SECURE_COOKIES = os.environ.get("TITLEAPP_SECURE_COOKIES", "").lower() in ("1", "true", "yes")
+
+# A version string that changes on every deploy. Appended to static asset URLs
+# (?v=...) so browsers always fetch the matching app.js/styles.css after a
+# deploy instead of serving a stale cached copy against a fresh index.html.
+BUILD_VERSION = (
+    os.environ.get("RAILWAY_GIT_COMMIT_SHA")
+    or os.environ.get("RAILWAY_DEPLOYMENT_ID")
+    or str(int(time.time()))
+)[:12]
 
 app = FastAPI(title="ODOT Title Forms")
 
@@ -353,30 +363,36 @@ def api_delete_job(job_id: str, ctx: dict = Depends(require_ready)):
 
 
 # -------------------------------------------------------------------- pages
+def render_page(filename: str) -> HTMLResponse:
+    """Serve an HTML page with the current build version stamped into its
+    static-asset URLs, and tell the browser never to cache the HTML itself —
+    so a deploy can't leave a stale app.js running against a fresh page."""
+    with open(os.path.join(FRONTEND, filename), encoding="utf-8") as f:
+        html = f.read().replace("__BUILD__", BUILD_VERSION)
+    return HTMLResponse(
+        html,
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
+    )
+
+
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    page = "index.html" if current_context(request) else "login.html"
-    with open(os.path.join(FRONTEND, page), encoding="utf-8") as f:
-        return f.read()
+    return render_page("index.html" if current_context(request) else "login.html")
 
 
 @app.get("/login", response_class=HTMLResponse)
 def login_page():
-    with open(os.path.join(FRONTEND, "login.html"), encoding="utf-8") as f:
-        return f.read()
+    return render_page("login.html")
 
 
 @app.get("/admin/login", response_class=HTMLResponse)
 def admin_login_page():
-    with open(os.path.join(FRONTEND, "admin_login.html"), encoding="utf-8") as f:
-        return f.read()
+    return render_page("admin_login.html")
 
 
 @app.get("/admin", response_class=HTMLResponse)
 def admin_page(request: Request):
-    page = "admin.html" if current_admin(request) else "admin_login.html"
-    with open(os.path.join(FRONTEND, page), encoding="utf-8") as f:
-        return f.read()
+    return render_page("admin.html" if current_admin(request) else "admin_login.html")
 
 
 def _slug(parcel: str) -> str:
