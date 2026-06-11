@@ -306,27 +306,39 @@ def replace_form_fields(root: etree._Element) -> int:
 # RE 46 tax table -> repeating row
 # ---------------------------------------------------------------------------
 # ---------------------------------------------------------------------------
-# RE 46 C/R/S field -> smaller font so multi-line CRS values fit one per line
+# RE 46 header -> shift the C/R/S / PARCEL / PID labels + values left a touch.
+# Width is taken from the "TITLE REPORT" column (left of the labels) and given
+# to the value column (right), so the label+value block slides left while the
+# table's overall width and position stay the same.
 # ---------------------------------------------------------------------------
-CRS_FONT_HALF_POINTS = "16"  # 8pt — fits e.g. "FRA-CR14-0.05" on one line
+HEADER_SHIFT_TWIPS = 144  # ~0.1", roughly 2 spaces
 
 
-def set_crs_font_size(root: etree._Element, half_points: str = CRS_FONT_HALF_POINTS) -> bool:
-    for r in root.iter(qn("r")):
-        t = r.find(qn("t"))
-        if t is None or not t.text or "{{ crs }}" not in t.text:
+def _adjust_w(el: etree._Element, delta: int) -> None:
+    cur = int(el.get(qn("w")))
+    el.set(qn("w"), str(cur + delta))
+
+
+def shift_header_block_left(root: etree._Element, twips: int = HEADER_SHIFT_TWIPS) -> bool:
+    tbl = root.find(f".//{qn('tbl')}")
+    if tbl is None:
+        return False
+    grid = tbl.find(qn("tblGrid"))
+    cols = grid.findall(qn("gridCol")) if grid is not None else []
+    if len(cols) < 4:
+        return False
+    _adjust_w(cols[1], -twips)   # TITLE REPORT column narrower
+    _adjust_w(cols[3], +twips)   # value column wider
+    for tr in tbl.findall(qn("tr")):
+        tcs = tr.findall(qn("tc"))
+        if len(tcs) < 4:
             continue
-        rpr = r.find(qn("rPr"))
-        if rpr is None:
-            rpr = etree.Element(qn("rPr"))
-            r.insert(0, rpr)
-        for tag in ("sz", "szCs"):
-            for e in rpr.findall(qn(tag)):
-                rpr.remove(e)
-        etree.SubElement(rpr, qn("sz")).set(qn("val"), half_points)
-        etree.SubElement(rpr, qn("szCs")).set(qn("val"), half_points)
-        return True
-    return False
+        for idx, delta in ((1, -twips), (3, +twips)):
+            tcpr = tcs[idx].find(qn("tcPr"))
+            tcw = tcpr.find(qn("tcW")) if tcpr is not None else None
+            if tcw is not None:
+                _adjust_w(tcw, delta)
+    return True
 
 
 def template_tax_table(root: etree._Element) -> bool:
@@ -481,10 +493,10 @@ def build_re46() -> None:
     n = replace_form_fields(doc)
     tax = template_tax_table(doc)
     eas = template_easements_row(doc)
-    crs = set_crs_font_size(doc)
+    hdr = shift_header_block_left(doc)
     changed = {"word/document.xml": serialize(doc)}
     write_docx(src, out, changed)
-    print(f"[RE 46]   fields replaced: {n}; tax table templated: {tax}; easements templated: {eas}; crs font: {crs}")
+    print(f"[RE 46]   fields replaced: {n}; tax table templated: {tax}; easements templated: {eas}; header shifted: {hdr}")
     print(f"          -> {out}")
 
 
