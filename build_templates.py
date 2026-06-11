@@ -319,6 +319,27 @@ def _adjust_w(el: etree._Element, delta: int) -> None:
     el.set(qn("w"), str(cur + delta))
 
 
+CRS_FONT_HALF_POINTS = "16"  # 8pt — keeps long CRS values (e.g. FRA-CR14-0.05) one per line
+
+
+def set_crs_font_size(root: etree._Element, half_points: str = CRS_FONT_HALF_POINTS) -> bool:
+    for r in root.iter(qn("r")):
+        t = r.find(qn("t"))
+        if t is None or not t.text or "{{ crs }}" not in t.text:
+            continue
+        rpr = r.find(qn("rPr"))
+        if rpr is None:
+            rpr = etree.Element(qn("rPr"))
+            r.insert(0, rpr)
+        for tag in ("sz", "szCs"):
+            for e in rpr.findall(qn(tag)):
+                rpr.remove(e)
+        etree.SubElement(rpr, qn("sz")).set(qn("val"), half_points)
+        etree.SubElement(rpr, qn("szCs")).set(qn("val"), half_points)
+        return True
+    return False
+
+
 def shift_header_block_left(root: etree._Element, twips: int = HEADER_SHIFT_TWIPS) -> bool:
     tbl = root.find(f".//{qn('tbl')}")
     if tbl is None:
@@ -494,9 +515,10 @@ def build_re46() -> None:
     tax = template_tax_table(doc)
     eas = template_easements_row(doc)
     hdr = shift_header_block_left(doc)
+    crs = set_crs_font_size(doc)
     changed = {"word/document.xml": serialize(doc)}
     write_docx(src, out, changed)
-    print(f"[RE 46]   fields replaced: {n}; tax table templated: {tax}; easements templated: {eas}; header shifted: {hdr}")
+    print(f"[RE 46]   fields replaced: {n}; tax: {tax}; easements: {eas}; header shifted: {hdr}; crs font: {crs}")
     print(f"          -> {out}")
 
 
