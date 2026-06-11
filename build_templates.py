@@ -329,6 +329,21 @@ def template_tax_table(root: etree._Element) -> bool:
 # ---------------------------------------------------------------------------
 # RE 46 (3-C) Easements row -> repeating row (one entry per row)
 # ---------------------------------------------------------------------------
+def blank_para(half_points: str = "18") -> etree._Element:
+    """An empty paragraph (a blank line) matching the easement font size."""
+    p = etree.Element(qn("p"))
+    ppr = etree.SubElement(p, qn("pPr"))
+    rpr = etree.SubElement(ppr, qn("rPr"))
+    etree.SubElement(rpr, qn("sz")).set(qn("val"), half_points)
+    etree.SubElement(rpr, qn("szCs")).set(qn("val"), half_points)
+    return p
+
+
+# Blank lines appended below each easement entry. This separates consecutive
+# easements AND separates the last easement from the (4) Defects section.
+EASEMENT_TRAILING_BLANKS = 2
+
+
 def template_easements_row(root: etree._Element) -> bool:
     """Find the row containing the {{ easements_name }} / {{ easements_type }}
     placeholders (placed earlier by replace_form_fields) and make it repeat
@@ -345,6 +360,12 @@ def template_easements_row(root: etree._Element) -> bool:
                 t.text = t.text.replace(name_tok, "{{ e.name }}")
             if type_tok in t.text:
                 t.text = t.text.replace(type_tok, "{{ e.type }}")
+        # Append blank lines to the first cell so each repeated easement is
+        # spaced from the next (and the last from the Defects section below).
+        first_cell = tr.find(qn("tc"))
+        if first_cell is not None:
+            for _ in range(EASEMENT_TRAILING_BLANKS):
+                first_cell.append(blank_para())
         tr.addprevious(make_marker_row(tr, "{%tr for e in easements %}"))
         tr.addnext(make_marker_row(tr, "{%tr endfor %}"))
         return True
