@@ -311,7 +311,7 @@ def replace_form_fields(root: etree._Element) -> int:
 # to the value column (right), so the label+value block slides left while the
 # table's overall width and position stay the same.
 # ---------------------------------------------------------------------------
-HEADER_SHIFT_TWIPS = 144  # ~0.1", roughly 2 spaces
+HEADER_SHIFT_TWIPS = 288  # ~0.2" — clearly visible nudge of the label+value block
 
 
 def _adjust_w(el: etree._Element, delta: int) -> None:
